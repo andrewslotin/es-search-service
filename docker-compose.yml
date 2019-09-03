@@ -7,3 +7,11 @@ services:
       - 9300:9300
     environment:
       discovery.type: single-node
+  search:
+    build: .
+    environment:
+      ELASTICSEARCH_NODES: http://elasticsearch:9200
+      ELASTICSEARCH_CONN_TIMEOUT: 30s
+    depends_on:
+      - elasticsearch
+
