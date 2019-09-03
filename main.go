@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -11,13 +12,31 @@ import (
 	elasticsearch "github.com/elastic/go-elasticsearch/v7"
 )
 
+var args struct {
+	NodesList   string
+	ConnTimeout time.Duration
+}
+
 func main() {
-	nodes := strings.Split(os.Getenv("ELASTICSEARCH_NODES"), ",")
+	if timeout := os.Getenv("ELASTICSEARCH_CONN_TIMEOUT"); timeout != "" {
+		dur, err := time.ParseDuration(timeout)
+		if err != nil {
+			log.Fatalf("invalid elasticsearch cluster connection timeout value: %s", timeout)
+		}
+
+		args.ConnTimeout = dur
+	}
+
+	flag.StringVar(&args.NodesList, "nodes", os.Getenv("ELASTICSEARCH_NODES"), "Comma-separated list of Elasticsearch cluster nodes")
+	flag.DurationVar(&args.ConnTimeout, "timeout", args.ConnTimeout, "Elastisearch cluster connection timeout")
+	flag.Parse()
+
+	nodes := strings.Split(args.NodesList, ",")
 	if len(nodes) == 0 {
 		log.Fatal("there were no elasticsearch nodes provided, did you forget to populate ELASTICSEARCH_NODES=?")
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, _ := context.WithTimeout(context.Background(), args.ConnTimeout)
 	c, err := DialElasticsearch(ctx, nodes)
 	if err != nil {
 		log.Fatalf("failed to connect to elasticsearch cluster: %s", err)
