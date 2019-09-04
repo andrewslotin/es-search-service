@@ -11,7 +11,10 @@ services:
     build: .
     environment:
       ELASTICSEARCH_NODES: http://elasticsearch:9200
-      ELASTICSEARCH_CONN_TIMEOUT: 30s
+      ELASTICSEARCH_CONN_TIMEOUT: 1m
+      LISTEN_ADDR: :8080
+    ports:
+      - 8080:8080
     depends_on:
       - elasticsearch
 

@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -12,9 +12,12 @@ import (
 	elasticsearch "github.com/elastic/go-elasticsearch/v7"
 )
 
+const defaultListenAddr = ":8080"
+
 var args struct {
 	NodesList   string
 	ConnTimeout time.Duration
+	ListenAddr  string
 }
 
 func main() {
@@ -29,11 +32,17 @@ func main() {
 
 	flag.StringVar(&args.NodesList, "nodes", os.Getenv("ELASTICSEARCH_NODES"), "Comma-separated list of Elasticsearch cluster nodes")
 	flag.DurationVar(&args.ConnTimeout, "timeout", args.ConnTimeout, "Elastisearch cluster connection timeout")
+	flag.StringVar(&args.ListenAddr, "l", os.Getenv("LISTEN_ADDR"), "Host and port to listen on")
 	flag.Parse()
 
 	nodes := strings.Split(args.NodesList, ",")
 	if len(nodes) == 0 {
 		log.Fatal("there were no elasticsearch nodes provided, did you forget to populate ELASTICSEARCH_NODES=?")
+	}
+
+	if args.ListenAddr == "" {
+		log.Printf("no LISTEN_ADDR= provided, falling back to %s", defaultListenAddr)
+		args.ListenAddr = defaultListenAddr
 	}
 
 	ctx, _ := context.WithTimeout(context.Background(), args.ConnTimeout)
@@ -42,12 +51,12 @@ func main() {
 		log.Fatalf("failed to connect to elasticsearch cluster: %s", err)
 	}
 
-	resp, err := c.Info()
-	if err != nil {
-		log.Fatalf("failed to query elasticsearch: %s", err)
-	}
+	http.Handle("/v1/products", SearchHandler(NewElasticsearchStorage(c)))
 
-	fmt.Println(resp)
+	log.Printf("starting up search service on %s", args.ListenAddr)
+	if err := http.ListenAndServe(args.ListenAddr, nil); err != nil {
+		log.Fatalf("failed to listen on %s: %s", args.ListenAddr, err)
+	}
 }
 
 // DialElasticsearch establishes connection with Elasticsearch cluster and ensures that it's
