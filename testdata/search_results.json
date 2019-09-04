@@ -1,0 +1,1 @@
+{"took":10,"timed_out":false,"_shards":{"total":0,"successful":0,"skipped":0,"failed":0},"hits":{"total":{"value":2,"relation":"eq"},"max_score":0.0,"hits":[{"_source":{"key":"value"}},{"_source":{"answer": 42}}]}}
