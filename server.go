@@ -23,7 +23,30 @@ func SearchHandler(s searcher) http.Handler {
 			return
 		}
 
-		results, err := s.Search(req.Context(), q, SearchOptions{})
+		var from int
+		if s := req.URL.Query().Get("from"); s != "" {
+			v, err := strconv.Atoi(s)
+			if err != nil || v < 0 {
+				writeError(w, http.StatusBadRequest, "malformed from parameter")
+				return
+			}
+			from = v
+		}
+
+		var size int
+		if s := req.URL.Query().Get("size"); s != "" {
+			v, err := strconv.Atoi(s)
+			if err != nil || v < 0 {
+				writeError(w, http.StatusBadRequest, "malformed size parameter")
+				return
+			}
+			size = v
+		}
+
+		results, err := s.Search(req.Context(), q, SearchOptions{
+			From: from,
+			Size: size,
+		})
 		if err != nil {
 			log.Printf("failed to perform search: %s", err)
 			writeError(w, http.StatusInternalServerError, "")

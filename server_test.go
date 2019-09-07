@@ -35,10 +35,37 @@ func TestSearchHandler(t *testing.T) {
 			ExpectedBody:  `{"status": "success", "results": []}`,
 			ExpectedQuery: "search term",
 		},
+		"with pagination": {
+			Request:       httptest.NewRequest(http.MethodGet, "/?q=search+term&from=11&size=123", nil),
+			ExpectedCode:  http.StatusOK,
+			ExpectedBody:  `{"status": "success", "results": []}`,
+			ExpectedQuery: "search term",
+			ExpectedOpts:  SearchOptions{From: 11, Size: 123},
+		},
 		"missing query": {
 			Request:      httptest.NewRequest(http.MethodGet, "/", nil),
 			ExpectedCode: http.StatusBadRequest,
 			ExpectedBody: `{"status": "error", "code": 400, "error": "missing query parameter"}`,
+		},
+		"malformed from": {
+			Request:      httptest.NewRequest(http.MethodGet, "/?q=search+term&from=abc&size=123", nil),
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: `{"status": "error", "code": 400, "error": "malformed from parameter"}`,
+		},
+		"negative from": {
+			Request:      httptest.NewRequest(http.MethodGet, "/?q=search+term&from=-1&size=123", nil),
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: `{"status": "error", "code": 400, "error": "malformed from parameter"}`,
+		},
+		"malformed size": {
+			Request:      httptest.NewRequest(http.MethodGet, "/?q=search+term&from=11&size=abc", nil),
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: `{"status": "error", "code": 400, "error": "malformed size parameter"}`,
+		},
+		"negative size": {
+			Request:      httptest.NewRequest(http.MethodGet, "/?q=search+term&from=11&size=-1", nil),
+			ExpectedCode: http.StatusBadRequest,
+			ExpectedBody: `{"status": "error", "code": 400, "error": "malformed size parameter"}`,
 		},
 	}
 
