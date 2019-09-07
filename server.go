@@ -10,7 +10,7 @@ import (
 )
 
 type searcher interface {
-	Search(ctx context.Context, query string) ([]json.RawMessage, error)
+	Search(ctx context.Context, query string, opts SearchOptions) ([]json.RawMessage, error)
 }
 
 // SearchHandler returns an http.Handler that server search requests and responds
@@ -23,7 +23,7 @@ func SearchHandler(s searcher) http.Handler {
 			return
 		}
 
-		results, err := s.Search(req.Context(), q)
+		results, err := s.Search(req.Context(), q, SearchOptions{})
 		if err != nil {
 			log.Printf("failed to perform search: %s", err)
 			writeError(w, http.StatusInternalServerError, "")

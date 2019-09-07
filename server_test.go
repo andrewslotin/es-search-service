@@ -17,6 +17,7 @@ func TestSearchHandler(t *testing.T) {
 		ExpectedCode  int
 		ExpectedBody  string
 		ExpectedQuery string
+		ExpectedOpts  SearchOptions
 	}{
 		"with results": {
 			Request: httptest.NewRequest(http.MethodGet, "/?q=search+term", nil),
@@ -54,17 +55,20 @@ func TestSearchHandler(t *testing.T) {
 			assert.Equal(t, testCase.ExpectedCode, rec.Code)
 			assert.JSONEq(t, testCase.ExpectedBody, rec.Body.String())
 			assert.Equal(t, testCase.ExpectedQuery, m.Query)
+			assert.Equal(t, testCase.ExpectedOpts, m.Opts)
 		})
 	}
 }
 
 type searcherMock struct {
 	Query   string
+	Opts    SearchOptions
 	Results []json.RawMessage
 }
 
-func (m *searcherMock) Search(ctx context.Context, query string) ([]json.RawMessage, error) {
+func (m *searcherMock) Search(ctx context.Context, query string, opts SearchOptions) ([]json.RawMessage, error) {
 	m.Query = query
+	m.Opts = opts
 
 	return m.Results, nil
 }

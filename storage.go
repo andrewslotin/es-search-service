@@ -6,7 +6,16 @@ import (
 	"fmt"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v7"
+	esapi "github.com/elastic/go-elasticsearch/v7/esapi"
 )
+
+// SearchOptions define the options to be passed to Elasticsearch API seach request
+type SearchOptions struct {
+	// From is the number of documents to skip before returning the result
+	From int
+	// Size is the number of documents to return in result
+	Size int
+}
 
 // ElasticsearchStorage implements access to the Elasticsearch cluster
 type ElasticsearchStorage struct {
@@ -20,11 +29,19 @@ func NewElasticsearchStorage(c *elasticsearch.Client) *ElasticsearchStorage {
 
 // Search queries the Elasticsearch cluster and returns a list of JSON documents
 // matching the search query.
-func (st *ElasticsearchStorage) Search(ctx context.Context, query string) ([]json.RawMessage, error) {
-	resp, err := st.es.Search(
+func (st *ElasticsearchStorage) Search(ctx context.Context, query string, opts SearchOptions) ([]json.RawMessage, error) {
+	req := []func(*esapi.SearchRequest){
 		st.es.Search.WithContext(ctx),
 		st.es.Search.WithQuery(query),
-	)
+	}
+	if opts.From > 0 {
+		req = append(req, st.es.Search.WithFrom(opts.From))
+	}
+	if opts.Size > 0 {
+		req = append(req, st.es.Search.WithSize(opts.Size))
+	}
+
+	resp, err := st.es.Search(req...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query elasticsearch: %s", err)
 	}
