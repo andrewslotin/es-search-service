@@ -46,6 +46,7 @@ func SearchHandler(s searcher) http.Handler {
 		results, err := s.Search(req.Context(), q, SearchOptions{
 			From: from,
 			Size: size,
+			Sort: req.URL.Query()["sort"], // allow multiple "sort" parameters
 		})
 		if err != nil {
 			log.Printf("failed to perform search: %s", err)

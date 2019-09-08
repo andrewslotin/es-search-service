@@ -42,6 +42,13 @@ func TestSearchHandler(t *testing.T) {
 			ExpectedQuery: "search term",
 			ExpectedOpts:  SearchOptions{From: 11, Size: 123},
 		},
+		"with sort": {
+			Request:       httptest.NewRequest(http.MethodGet, "/?q=search+term&sort=a:asc&sort=b:desc", nil),
+			ExpectedCode:  http.StatusOK,
+			ExpectedBody:  `{"status": "success", "results": []}`,
+			ExpectedQuery: "search term",
+			ExpectedOpts:  SearchOptions{Sort: []string{"a:asc", "b:desc"}},
+		},
 		"missing query": {
 			Request:      httptest.NewRequest(http.MethodGet, "/", nil),
 			ExpectedCode: http.StatusBadRequest,

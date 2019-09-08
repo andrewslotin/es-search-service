@@ -17,6 +17,8 @@ type SearchOptions struct {
 	Size int
 	// Sort is a list of fields to sort by followied by sort direction, i.e. ["field1:asc", "field2:desc"]
 	Sort []string
+	// Filter is the filter query in Lucene syntax. If provided, it's appended to the original query using AND operator
+	Filter string
 }
 
 // ElasticsearchStorage implements access to the Elasticsearch cluster
@@ -32,6 +34,10 @@ func NewElasticsearchStorage(c *elasticsearch.Client) *ElasticsearchStorage {
 // Search queries the Elasticsearch cluster and returns a list of JSON documents
 // matching the search query.
 func (st *ElasticsearchStorage) Search(ctx context.Context, query string, opts SearchOptions) ([]json.RawMessage, error) {
+	if opts.Filter != "" {
+		query += " AND (" + opts.Filter + ")"
+	}
+
 	req := []func(*esapi.SearchRequest){
 		st.es.Search.WithContext(ctx),
 		st.es.Search.WithQuery(query),

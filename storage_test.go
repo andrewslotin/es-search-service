@@ -56,6 +56,15 @@ func TestElasticsearchStorage_Search(t *testing.T) {
 				"sort": []string{"a:asc,b:desc"},
 			},
 		},
+		"with filter": {
+			Query: "search term",
+			Options: SearchOptions{
+				Filter: "a:1 OR b:2",
+			},
+			ExpectedParameters: url.Values{
+				"q": []string{"search term AND (a:1 OR b:2)"},
+			},
+		},
 	}
 	for name, testCase := range testCases {
 		t.Run(name, func(t *testing.T) {
