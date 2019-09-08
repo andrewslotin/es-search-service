@@ -55,6 +55,7 @@ func main() {
 	}
 
 	http.Handle("/v1/products", web.AuthMiddleware(web.SearchHandler(storage.New(c))))
+	http.Handle("/", web.IndexHandler(http.MethodGet, "/v1/products"))
 
 	log.Printf("starting up search service on %s", args.ListenAddr)
 	if err := http.ListenAndServe(args.ListenAddr, nil); err != nil {
