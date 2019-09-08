@@ -7,10 +7,12 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/andrewslotin/es-search-service/storage"
 )
 
 type searcher interface {
-	Search(ctx context.Context, query string, opts SearchOptions) ([]json.RawMessage, error)
+	Search(ctx context.Context, query string, opts storage.SearchOptions) ([]json.RawMessage, error)
 }
 
 // SearchHandler returns an http.Handler that server search requests and responds
@@ -43,7 +45,7 @@ func SearchHandler(s searcher) SecureHandler {
 			size = v
 		}
 
-		results, err := s.Search(req.Context(), q, SearchOptions{
+		results, err := s.Search(req.Context(), q, storage.SearchOptions{
 			From:   from,
 			Size:   size,
 			Sort:   req.URL.Query()["sort"], // allow multiple "sort" parameters

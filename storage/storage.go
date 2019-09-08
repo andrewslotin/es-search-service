@@ -1,4 +1,4 @@
-package main
+package storage
 
 import (
 	"context"
@@ -21,19 +21,19 @@ type SearchOptions struct {
 	Filter string
 }
 
-// ElasticsearchStorage implements access to the Elasticsearch cluster
-type ElasticsearchStorage struct {
+// Storage implements access to the Elasticsearch cluster
+type Storage struct {
 	es *elasticsearch.Client
 }
 
-// NewElasticsearchStorage initializes a new instance of ElasticsearchStorage
-func NewElasticsearchStorage(c *elasticsearch.Client) *ElasticsearchStorage {
-	return &ElasticsearchStorage{es: c}
+// New initializes a new instance of an Elasticsearch-backed storage
+func New(c *elasticsearch.Client) *Storage {
+	return &Storage{es: c}
 }
 
 // Search queries the Elasticsearch cluster and returns a list of JSON documents
 // matching the search query.
-func (st *ElasticsearchStorage) Search(ctx context.Context, query string, opts SearchOptions) ([]json.RawMessage, error) {
+func (st *Storage) Search(ctx context.Context, query string, opts SearchOptions) ([]json.RawMessage, error) {
 	if opts.Filter != "" {
 		query += " AND (" + opts.Filter + ")"
 	}

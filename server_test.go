@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/andrewslotin/es-search-service/storage"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +19,7 @@ func TestSearchHandler(t *testing.T) {
 		ExpectedCode  int
 		ExpectedBody  string
 		ExpectedQuery string
-		ExpectedOpts  SearchOptions
+		ExpectedOpts  storage.SearchOptions
 	}{
 		"with results": {
 			Request: httptest.NewRequest(http.MethodGet, "/?q=search+term", nil),
@@ -40,21 +42,21 @@ func TestSearchHandler(t *testing.T) {
 			ExpectedCode:  http.StatusOK,
 			ExpectedBody:  `{"status": "success", "results": []}`,
 			ExpectedQuery: "search term",
-			ExpectedOpts:  SearchOptions{From: 11, Size: 123},
+			ExpectedOpts:  storage.SearchOptions{From: 11, Size: 123},
 		},
 		"with sort": {
 			Request:       httptest.NewRequest(http.MethodGet, "/?q=search+term&sort=a:asc&sort=b:desc", nil),
 			ExpectedCode:  http.StatusOK,
 			ExpectedBody:  `{"status": "success", "results": []}`,
 			ExpectedQuery: "search term",
-			ExpectedOpts:  SearchOptions{Sort: []string{"a:asc", "b:desc"}},
+			ExpectedOpts:  storage.SearchOptions{Sort: []string{"a:asc", "b:desc"}},
 		},
 		"with filter": {
 			Request:       httptest.NewRequest(http.MethodGet, "/?q=search+term&filter=a:1+OR+b:2+and+c:3", nil),
 			ExpectedCode:  http.StatusOK,
 			ExpectedBody:  `{"status": "success", "results": []}`,
 			ExpectedQuery: "search term",
-			ExpectedOpts:  SearchOptions{Filter: "a:1 OR b:2 and c:3"},
+			ExpectedOpts:  storage.SearchOptions{Filter: "a:1 OR b:2 and c:3"},
 		},
 		"missing query": {
 			Request:      httptest.NewRequest(http.MethodGet, "/", nil),
@@ -106,11 +108,11 @@ func TestSearchHandler(t *testing.T) {
 
 type searcherMock struct {
 	Query   string
-	Opts    SearchOptions
+	Opts    storage.SearchOptions
 	Results []json.RawMessage
 }
 
-func (m *searcherMock) Search(ctx context.Context, query string, opts SearchOptions) ([]json.RawMessage, error) {
+func (m *searcherMock) Search(ctx context.Context, query string, opts storage.SearchOptions) ([]json.RawMessage, error) {
 	m.Query = query
 	m.Opts = opts
 

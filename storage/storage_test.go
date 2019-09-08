@@ -1,4 +1,4 @@
-package main
+package storage_test
 
 import (
 	"context"
@@ -9,6 +9,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/andrewslotin/es-search-service/storage"
+
 	elasticsearch "github.com/elastic/go-elasticsearch/v7"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,7 +19,7 @@ import (
 func TestElasticsearchStorage_Search(t *testing.T) {
 	testCases := map[string]struct {
 		Query              string
-		Options            SearchOptions
+		Options            storage.SearchOptions
 		ExpectedParameters url.Values
 	}{
 		"default": {
@@ -28,7 +30,7 @@ func TestElasticsearchStorage_Search(t *testing.T) {
 		},
 		"with from": {
 			Query: "search term",
-			Options: SearchOptions{
+			Options: storage.SearchOptions{
 				From: 11,
 			},
 			ExpectedParameters: url.Values{
@@ -38,7 +40,7 @@ func TestElasticsearchStorage_Search(t *testing.T) {
 		},
 		"with size": {
 			Query: "search term",
-			Options: SearchOptions{
+			Options: storage.SearchOptions{
 				Size: 123,
 			},
 			ExpectedParameters: url.Values{
@@ -48,7 +50,7 @@ func TestElasticsearchStorage_Search(t *testing.T) {
 		},
 		"with sort": {
 			Query: "search term",
-			Options: SearchOptions{
+			Options: storage.SearchOptions{
 				Sort: []string{"a:asc", "b:desc"},
 			},
 			ExpectedParameters: url.Values{
@@ -58,7 +60,7 @@ func TestElasticsearchStorage_Search(t *testing.T) {
 		},
 		"with filter": {
 			Query: "search term",
-			Options: SearchOptions{
+			Options: storage.SearchOptions{
 				Filter: "a:1 OR b:2",
 			},
 			ExpectedParameters: url.Values{
@@ -92,7 +94,7 @@ func TestElasticsearchStorage_Search(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			st := NewElasticsearchStorage(c)
+			st := storage.New(c)
 
 			results, err := st.Search(context.Background(), testCase.Query, testCase.Options)
 			require.NoError(t, err)
