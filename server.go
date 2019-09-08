@@ -44,9 +44,10 @@ func SearchHandler(s searcher) http.Handler {
 		}
 
 		results, err := s.Search(req.Context(), q, SearchOptions{
-			From: from,
-			Size: size,
-			Sort: req.URL.Query()["sort"], // allow multiple "sort" parameters
+			From:   from,
+			Size:   size,
+			Sort:   req.URL.Query()["sort"], // allow multiple "sort" parameters
+			Filter: req.URL.Query().Get("filter"),
 		})
 		if err != nil {
 			log.Printf("failed to perform search: %s", err)

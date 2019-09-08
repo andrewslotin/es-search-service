@@ -49,6 +49,13 @@ func TestSearchHandler(t *testing.T) {
 			ExpectedQuery: "search term",
 			ExpectedOpts:  SearchOptions{Sort: []string{"a:asc", "b:desc"}},
 		},
+		"with filter": {
+			Request:       httptest.NewRequest(http.MethodGet, "/?q=search+term&filter=a:1+OR+b:2+and+c:3", nil),
+			ExpectedCode:  http.StatusOK,
+			ExpectedBody:  `{"status": "success", "results": []}`,
+			ExpectedQuery: "search term",
+			ExpectedOpts:  SearchOptions{Filter: "a:1 OR b:2 and c:3"},
+		},
 		"missing query": {
 			Request:      httptest.NewRequest(http.MethodGet, "/", nil),
 			ExpectedCode: http.StatusBadRequest,
