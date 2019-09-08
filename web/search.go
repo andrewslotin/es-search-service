@@ -57,7 +57,12 @@ func SearchHandler(s searcher) SecureHandler {
 			return
 		}
 
-		json.NewEncoder(w).Encode(struct {
+		enc := json.NewEncoder(w)
+		if req.URL.Query().Get("pretty") != "" {
+			enc.SetIndent("", "  ")
+		}
+
+		enc.Encode(struct {
 			Status  string            `json:"status"`
 			Results []json.RawMessage `json:"results"`
 		}{
