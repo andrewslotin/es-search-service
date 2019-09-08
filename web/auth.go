@@ -19,6 +19,7 @@ func AuthMiddleware(next SecureHandler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		user, _, ok := req.BasicAuth()
 		if !ok {
+			w.Header().Set("WWW-Authenticate", `Basic realm="Please login"`)
 			writeError(w, http.StatusUnauthorized, "")
 			return
 		}
