@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import http.client, json, time
+from base64 import b64encode
 
 ELASTICSEARCH_URL = "localhost:9200"
 SERVICE_URL = "localhost:8080"
@@ -36,7 +37,9 @@ def clear():
 def query_search_api(query):
     path = "/v1/products?q=" + query
     conn = http.client.HTTPConnection(SERVICE_URL)
-    conn.request("GET", path)
+    conn.request("GET", path, headers={
+        "Authorization": "Basic " + b64encode(b"user1:password2").decode("ascii")
+    })
 
     resp = conn.getresponse()
     result = resp.read()

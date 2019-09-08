@@ -15,8 +15,8 @@ type searcher interface {
 
 // SearchHandler returns an http.Handler that server search requests and responds
 // with a list of results
-func SearchHandler(s searcher) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+func SearchHandler(s searcher) SecureHandler {
+	return func(w http.ResponseWriter, req AuthenticatedRequest) {
 		q := req.URL.Query().Get("q")
 		if q == "" {
 			writeError(w, http.StatusBadRequest, "missing query parameter")
@@ -62,7 +62,7 @@ func SearchHandler(s searcher) http.Handler {
 			Status:  "success",
 			Results: append([]json.RawMessage{}, results...), // make sure "results" is always an array
 		})
-	})
+	}
 }
 
 func writeError(w http.ResponseWriter, code int, message string) {

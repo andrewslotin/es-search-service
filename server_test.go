@@ -91,7 +91,10 @@ func TestSearchHandler(t *testing.T) {
 			h := SearchHandler(m)
 			rec := httptest.NewRecorder()
 
-			h.ServeHTTP(rec, testCase.Request)
+			h(rec, AuthenticatedRequest{
+				Request:  testCase.Request,
+				Username: "test1",
+			})
 
 			assert.Equal(t, testCase.ExpectedCode, rec.Code)
 			assert.JSONEq(t, testCase.ExpectedBody, rec.Body.String())
