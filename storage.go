@@ -15,6 +15,8 @@ type SearchOptions struct {
 	From int
 	// Size is the number of documents to return in result
 	Size int
+	// Sort is a list of fields to sort by followied by sort direction, i.e. ["field1:asc", "field2:desc"]
+	Sort []string
 }
 
 // ElasticsearchStorage implements access to the Elasticsearch cluster
@@ -34,11 +36,17 @@ func (st *ElasticsearchStorage) Search(ctx context.Context, query string, opts S
 		st.es.Search.WithContext(ctx),
 		st.es.Search.WithQuery(query),
 	}
+
 	if opts.From > 0 {
 		req = append(req, st.es.Search.WithFrom(opts.From))
 	}
+
 	if opts.Size > 0 {
 		req = append(req, st.es.Search.WithSize(opts.Size))
+	}
+
+	if len(opts.Sort) > 0 {
+		req = append(req, st.es.Search.WithSort(opts.Sort...))
 	}
 
 	resp, err := st.es.Search(req...)
