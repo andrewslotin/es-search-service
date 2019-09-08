@@ -15,120 +15,76 @@ import (
 )
 
 func TestElasticsearchStorage_Search(t *testing.T) {
-	node, mux, teardown := setupTS()
-	defer teardown()
+	testCases := map[string]struct {
+		Query              string
+		Options            SearchOptions
+		ExpectedParameters url.Values
+	}{
+		"default": {
+			Query: "search term",
+			ExpectedParameters: url.Values{
+				"q": []string{"search term"},
+			},
+		},
+		"with from": {
+			Query: "search term",
+			Options: SearchOptions{
+				From: 11,
+			},
+			ExpectedParameters: url.Values{
+				"q":    []string{"search term"},
+				"from": []string{"11"},
+			},
+		},
+		"with size": {
+			Query: "search term",
+			Options: SearchOptions{
+				Size: 123,
+			},
+			ExpectedParameters: url.Values{
+				"q":    []string{"search term"},
+				"size": []string{"123"},
+			},
+		},
+	}
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			node, mux, teardown := setupTS()
+			defer teardown()
 
-	var numRequests int
-	mux.Handle("/_search", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		numRequests++
+			var numRequests int
+			mux.Handle("/_search", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				numRequests++
 
-		assert.Equal(t, http.MethodGet, req.Method)
-		assert.Equal(t, url.Values{
-			"q": []string{"search term"},
-		}, req.URL.Query())
+				assert.Equal(t, http.MethodGet, req.Method)
+				assert.Equal(t, testCase.ExpectedParameters, req.URL.Query())
 
-		fd, err := os.Open("testdata/search_results.json")
-		if err != nil {
-			panic(err)
-		}
-		defer fd.Close()
+				fd, err := os.Open("testdata/search_results.json")
+				if err != nil {
+					panic(err)
+				}
+				defer fd.Close()
 
-		io.Copy(w, fd)
-	}))
+				io.Copy(w, fd)
+			}))
 
-	c, err := elasticsearch.NewClient(elasticsearch.Config{
-		Addresses: []string{node},
-	})
-	require.NoError(t, err)
+			c, err := elasticsearch.NewClient(elasticsearch.Config{
+				Addresses: []string{node},
+			})
+			require.NoError(t, err)
 
-	st := NewElasticsearchStorage(c)
+			st := NewElasticsearchStorage(c)
 
-	results, err := st.Search(context.Background(), "search term", SearchOptions{})
-	require.NoError(t, err)
+			results, err := st.Search(context.Background(), testCase.Query, testCase.Options)
+			require.NoError(t, err)
 
-	require.Len(t, results, 2)
-	assert.JSONEq(t, string(results[0]), `{"key": "value"}`)
-	assert.JSONEq(t, string(results[1]), `{"answer": 42}`)
-}
+			require.Len(t, results, 2)
+			assert.JSONEq(t, string(results[0]), `{"key": "value"}`)
+			assert.JSONEq(t, string(results[1]), `{"answer": 42}`)
 
-func TestElasticsearchStorage_Search_WithFrom(t *testing.T) {
-	node, mux, teardown := setupTS()
-	defer teardown()
-
-	var numRequests int
-	mux.Handle("/_search", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		numRequests++
-
-		assert.Equal(t, http.MethodGet, req.Method)
-		assert.Equal(t, url.Values{
-			"q":    []string{"search term"},
-			"from": []string{"11"},
-		}, req.URL.Query())
-
-		fd, err := os.Open("testdata/search_results.json")
-		if err != nil {
-			panic(err)
-		}
-		defer fd.Close()
-
-		io.Copy(w, fd)
-	}))
-
-	c, err := elasticsearch.NewClient(elasticsearch.Config{
-		Addresses: []string{node},
-	})
-	require.NoError(t, err)
-
-	st := NewElasticsearchStorage(c)
-
-	results, err := st.Search(context.Background(), "search term", SearchOptions{
-		From: 11,
-	})
-	require.NoError(t, err)
-
-	require.Len(t, results, 2)
-	assert.JSONEq(t, string(results[0]), `{"key": "value"}`)
-	assert.JSONEq(t, string(results[1]), `{"answer": 42}`)
-}
-
-func TestElasticsearchStorage_Search_WithPageSize(t *testing.T) {
-	node, mux, teardown := setupTS()
-	defer teardown()
-
-	var numRequests int
-	mux.Handle("/_search", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		numRequests++
-
-		assert.Equal(t, http.MethodGet, req.Method)
-		assert.Equal(t, url.Values{
-			"q":    []string{"search term"},
-			"size": []string{"123"},
-		}, req.URL.Query())
-
-		fd, err := os.Open("testdata/search_results.json")
-		if err != nil {
-			panic(err)
-		}
-		defer fd.Close()
-
-		io.Copy(w, fd)
-	}))
-
-	c, err := elasticsearch.NewClient(elasticsearch.Config{
-		Addresses: []string{node},
-	})
-	require.NoError(t, err)
-
-	st := NewElasticsearchStorage(c)
-
-	results, err := st.Search(context.Background(), "search term", SearchOptions{
-		Size: 123,
-	})
-	require.NoError(t, err)
-
-	require.Len(t, results, 2)
-	assert.JSONEq(t, string(results[0]), `{"key": "value"}`)
-	assert.JSONEq(t, string(results[1]), `{"answer": 42}`)
+			assert.Equal(t, 1, numRequests)
+		})
+	}
 }
 
 func setupTS() (string, *http.ServeMux, func()) {
