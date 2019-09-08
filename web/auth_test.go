@@ -1,10 +1,12 @@
-package main
+package web_test
 
 import (
 	"encoding/base64"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/andrewslotin/es-search-service/web"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -14,7 +16,7 @@ func TestAuthMiddleware_WithAuthorizationHeader(t *testing.T) {
 	req.Header.Set("Authorization", "Basic "+base64.RawURLEncoding.EncodeToString([]byte("user1:password2")))
 
 	var numRequests int
-	h := AuthMiddleware(func(w http.ResponseWriter, req AuthenticatedRequest) {
+	h := web.AuthMiddleware(func(w http.ResponseWriter, req web.AuthenticatedRequest) {
 		numRequests++
 		assert.Equal(t, "user1", req.Username)
 		w.Write([]byte("welcome"))
@@ -32,7 +34,7 @@ func TestAuthMiddleware_WithoutAuthorizationHeader(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 
 	var numRequests int
-	h := AuthMiddleware(func(w http.ResponseWriter, req AuthenticatedRequest) {
+	h := web.AuthMiddleware(func(w http.ResponseWriter, req web.AuthenticatedRequest) {
 		numRequests++
 		w.WriteHeader(http.StatusOK)
 	})

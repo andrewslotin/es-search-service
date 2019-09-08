@@ -1,4 +1,4 @@
-package main
+package web_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/andrewslotin/es-search-service/storage"
+	"github.com/andrewslotin/es-search-service/web"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -90,10 +91,10 @@ func TestSearchHandler(t *testing.T) {
 			m := &searcherMock{
 				Results: testCase.SearchResult,
 			}
-			h := SearchHandler(m)
+			h := web.SearchHandler(m)
 			rec := httptest.NewRecorder()
 
-			h(rec, AuthenticatedRequest{
+			h(rec, web.AuthenticatedRequest{
 				Request:  testCase.Request,
 				Username: "test1",
 			})

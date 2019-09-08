@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/andrewslotin/es-search-service/storage"
+	"github.com/andrewslotin/es-search-service/web"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v7"
 )
@@ -53,7 +54,7 @@ func main() {
 		log.Fatalf("failed to connect to elasticsearch cluster: %s", err)
 	}
 
-	http.Handle("/v1/products", AuthMiddleware(SearchHandler(storage.New(c))))
+	http.Handle("/v1/products", web.AuthMiddleware(web.SearchHandler(storage.New(c))))
 
 	log.Printf("starting up search service on %s", args.ListenAddr)
 	if err := http.ListenAndServe(args.ListenAddr, nil); err != nil {
