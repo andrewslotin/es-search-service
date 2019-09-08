@@ -33,9 +33,9 @@ func main() {
 		args.ConnTimeout = dur
 	}
 
-	flag.StringVar(&args.NodesList, "nodes", os.Getenv("ELASTICSEARCH_NODES"), "Comma-separated list of Elasticsearch cluster nodes")
-	flag.DurationVar(&args.ConnTimeout, "timeout", args.ConnTimeout, "Elastisearch cluster connection timeout")
-	flag.StringVar(&args.ListenAddr, "l", os.Getenv("LISTEN_ADDR"), "Host and port to listen on")
+	flag.StringVar(&args.NodesList, "nodes", os.Getenv("ELASTICSEARCH_NODES"), "Comma-separated list of Elasticsearch cluster nodes, overrides ELASTICSEARCH_NODES=")
+	flag.DurationVar(&args.ConnTimeout, "timeout", args.ConnTimeout, "Elastisearch cluster connection timeout, overrides ELASTICSEARCH_CONN_TIMEOUT=")
+	flag.StringVar(&args.ListenAddr, "l", os.Getenv("LISTEN_ADDR"), "Host and port to listen on, overrides LISTEN_ADDR=")
 	flag.Parse()
 
 	nodes := strings.Split(args.NodesList, ",")
