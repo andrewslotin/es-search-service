@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import http.client, json, time
+import os, http.client, json, time
 from base64 import b64encode
 
-ELASTICSEARCH_URL = "localhost:9200"
-SERVICE_URL = "localhost:8080"
+ELASTICSEARCH_URL = os.environ.get("ELASTICSEARCH_NODES", "localhost:9200")
+SERVICE_URL = os.environ.get("LISTEN_ADDR", "localhost:8080")
 DATA = ('{"index": {"_index": "products", "_type": "product"}}\n'
         '{"title": "AirMax", "brand": "Nike", "price": 1000, "stock": 10}\n'
         '{"index": {"_index": "products", "_type": "product"}}\n'
